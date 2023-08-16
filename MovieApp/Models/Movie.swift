@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 struct MovieResponse: Codable {
     var page: Int?
@@ -30,4 +31,7 @@ struct Movie: Codable {
     var video: Bool?
     let vote_average: Double?
     var vote_count: Int?
+    var name: String?
 }
+
+

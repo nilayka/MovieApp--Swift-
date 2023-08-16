@@ -15,6 +15,8 @@ class DetailsViewController: UIViewController {
     @IBOutlet weak var movieImageView: UIImageView!
     @IBOutlet weak var movieTitleLabel: UILabel!
     
+    @IBOutlet weak var popularityLabel: UILabel!
+    
     @IBOutlet weak var movieSubTitle: UILabel!
     var movie: Movie?
     var defaults = UserDefaults.standard
@@ -41,9 +43,17 @@ class DetailsViewController: UIViewController {
         movieTitleLabel.text = movie?.title
         descriptionLabel.text = movie?.overview
         movieImageView.sd_setImage(with: URL(string: "\(baseImageUrl)\(movie?.poster_path ?? "")"), placeholderImage: nil)
-        movieSubTitle.text = movie?.release_date
-        let average = String(format: "%.1f", movie?.vote_average ?? 0)
-        voteLabel.text = "imdb: \(average)"
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let date = dateFormatter.date(from: movie?.release_date ?? "")
+        dateFormatter.dateFormat = "d MMM EEEE yyyy"
+        dateFormatter.locale = Locale(identifier: "en_US")
+        let resultString = dateFormatter.string(from: date!)
+        movieSubTitle.text = resultString
+        
+        popularityLabel.text = "(\(movie?.original_language ?? ""))"
+        voteLabel.attributedText = displayColoredRating()
         
         guard let defaultsFavorite = (self.defaults.object(forKey: "favoriteList") as? Data),
               let favoriteList = try? JSONDecoder().decode([Movie].self, from: defaultsFavorite) else { return }
@@ -131,5 +141,19 @@ class DetailsViewController: UIViewController {
             heartImageView.image = UIImage(named: "heart")?.withRenderingMode(.alwaysOriginal)
             isHeartFilled = false
         }
+    }
+}
+
+extension DetailsViewController {
+    func displayColoredRating() -> NSAttributedString {
+        let imdbPoint = String(format: "%.1f", movie?.vote_average ?? 0)
+        if movie?.vote_average ?? 0.0 < 6.8 {
+            voteLabel.textColor = .red
+        } else if movie?.vote_average ?? 6.8 < 8.0 {
+            voteLabel.textColor =  .orange
+        } else {
+            voteLabel.textColor = .green
+        }
+        return NSAttributedString(string: "imdb: \(imdbPoint)")
     }
 }

@@ -13,15 +13,11 @@ class Service {
     
     //bak
     func fetchMovieList(completed: @escaping ([Movie]) -> Void) {
-        //
         let headers = [
             "accept": "application/json",
             "Authorization": "Bearer \(apiKey)"
         ]
-        
-        //! kaldır
         let request = NSMutableURLRequest(url: NSURL(string:
-                                                        //strın olmamalı ıcerde
                 "https://api.themoviedb.org/3/trending/movie/week")! as URL,
                                           cachePolicy: .useProtocolCachePolicy,
                                           timeoutInterval: 10.0)

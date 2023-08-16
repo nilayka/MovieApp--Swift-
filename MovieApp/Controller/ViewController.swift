@@ -9,7 +9,6 @@ import UIKit
 
 class ViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
-    
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var movies: [Movie] = []
@@ -17,24 +16,26 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let onboardingShown = UserDefaults.standard.bool(forKey: "OnboardingViewController")
-        if !onboardingShown {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let onboardingViewController = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController")
-            onboardingViewController.modalPresentationStyle = .fullScreen
-           present(onboardingViewController, animated: true)
-        }
-        
+//        let loginshown = UserDefaults.standard.bool(forKey: "OnboardingViewController")
+//        if !loginshown {
+//            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//            let loginViewController = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController")
+//            loginViewController.modalPresentationStyle = .fullScreen
+//           present(loginViewController, animated: true)
+//        }
+
         tableView.register(UINib(nibName: MovieListCell.className, bundle: nil), forCellReuseIdentifier: movieListIdentifier)
         
         DispatchQueue.main.async {
             self.activityIndicator.hidesWhenStopped = true
             self.activityIndicator?.startAnimating()
+            self.view.isUserInteractionEnabled = false
         }
 
         Service().fetchMovieList { response in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 self.activityIndicator?.stopAnimating()
+                self.view.isUserInteractionEnabled = true
             }
             if !response.isEmpty {
                 DispatchQueue.main.async {
@@ -70,6 +71,10 @@ class ViewController: UIViewController {
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        
+        let backButton = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        backButton.image = UIImage(systemName: "")
+        navigationItem.backBarButtonItem = backButton
     }
     
     @objc func favButtonTap() {
@@ -104,7 +109,8 @@ extension ViewController: UITableViewDataSource {
     }
 }
 
-extension ViewController: UITableViewDelegate {}
+extension ViewController: UITableViewDelegate {
+}
 
 extension NSObject {
     @objc public var className: String {
@@ -115,5 +121,3 @@ extension NSObject {
         return String(describing: self)
     }
 }
-
-

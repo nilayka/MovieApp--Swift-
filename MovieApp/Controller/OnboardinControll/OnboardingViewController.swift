@@ -36,7 +36,7 @@ class OnboardingViewController: UIViewController {
     
     let descriptionArray = [
         "Welcome To \n MovieApp",
-        "You can easily access content \n about trending \n movies",
+        "You can easily access \ncontent  about trending \n movies",
         "Create your own favorite movie list"
     ]
     
@@ -71,23 +71,9 @@ extension OnboardingViewController: UICollectionViewDelegate, UICollectionViewDa
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OnBoardingCell", for: indexPath) as! OnboardingCell
-        
-        cell.artImageConstraints.constant = normalize(value: 260.0)
+
         cell.artImage.image = imageArray[indexPath.row]
         cell.descriptionLabel.text = descriptionArray[indexPath.row]
-        
-        if indexPath.row == 0 {
-            cell.descriptionLabel.font = UIFont.boldSystemFont(ofSize: 40.0)
-            cell.descriptionLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 380.0).isActive = true
-        }
-        if indexPath.row == 1 {
-            cell.descriptionLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 345.0).isActive = true
-        }
-        
-        if indexPath.row == 2 {
-            cell.descriptionLabel.font = UIFont.boldSystemFont(ofSize: 33.0)
-            cell.descriptionLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 375.0).isActive = true
-        }
         
         return cell
     }
