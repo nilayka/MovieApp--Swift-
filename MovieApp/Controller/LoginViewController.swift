@@ -37,8 +37,8 @@ class LoginViewController: UIViewController {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let mainViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
             mainViewController.modalPresentationStyle = .fullScreen
-            present(mainViewController, animated: true, completion: nil)
-            self.dismiss(animated: true)
+//            present(mainViewController, animated: true, completion: nil)
+//            self.dismiss(animated: true)
         }
     }
     
@@ -54,7 +54,7 @@ class LoginViewController: UIViewController {
             return
         }
         
-        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password, completion: {[weak self]result, error in
+        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password, completion: { [weak self] result, error in
             guard let strongSelf = self else {
                 return
             }
@@ -78,7 +78,7 @@ class LoginViewController: UIViewController {
             let newViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
             newViewController.modalPresentationStyle = .fullScreen
             strongSelf.present(newViewController, animated: true, completion: nil)
-            strongSelf.dismiss(animated: true)
+//            strongSelf.dismiss(animated: true)
         })
     }
     
@@ -111,8 +111,8 @@ class LoginViewController: UIViewController {
                 let storyboard = UIStoryboard(name: "Main", bundle: nil)
                 let newViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
                 newViewController.modalPresentationStyle = .fullScreen
-                strongSelf.present(newViewController, animated: true, completion: nil)
-                strongSelf.self.dismiss(animated: true)
+//                strongSelf.present(newViewController, animated: true, completion: nil)
+//                strongSelf.self.dismiss(animated: true)
             })
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: {_ in
@@ -131,3 +131,4 @@ class LoginViewController: UIViewController {
         SecItemAdd(credentials, nil)
     }
 }
+
