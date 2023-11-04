@@ -34,4 +34,8 @@ struct Movie: Codable {
     var name: String?
 }
 
-
+struct Video {
+    let id: String
+    let title: String
+    let thumbnailURL: String
+}

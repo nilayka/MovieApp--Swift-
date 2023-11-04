@@ -26,16 +26,22 @@ class ViewController: UIViewController {
 
         tableView.register(UINib(nibName: MovieListCell.className, bundle: nil), forCellReuseIdentifier: movieListIdentifier)
         
+        
         DispatchQueue.main.async {
             self.activityIndicator.hidesWhenStopped = true
             self.activityIndicator?.startAnimating()
-            self.view.isUserInteractionEnabled = false
+            UIApplication.shared.beginIgnoringInteractionEvents() //ios 13... > x
+//            self.tabBarController?.tabBar.isUserInteractionEnabled = false
+////            self.view.isUserInteractionEnabled = false //ios 13... > 
+            
         }
 
         Service().fetchMovieList { response in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 self.activityIndicator?.stopAnimating()
-                self.view.isUserInteractionEnabled = true
+                UIApplication.shared.endIgnoringInteractionEvents()
+////                self.view.isUserInteractionEnabled = true
+//                self.tabBarController?.tabBar.isUserInteractionEnabled = true
             }
             if !response.isEmpty {
                 DispatchQueue.main.async {

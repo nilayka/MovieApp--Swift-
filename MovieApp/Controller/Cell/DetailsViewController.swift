@@ -6,9 +6,17 @@
 //
 
 import UIKit
+import AVKit
+
 
 class DetailsViewController: UIViewController {
-
+    
+    var movie: Movie?
+    var videoURL: URL?
+    var player: AVPlayer?
+    var playerViewController: AVPlayerViewController?
+    
+    @IBOutlet weak var videoView: UIView!
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var heartImageView: UIImageView!
     @IBOutlet weak var voteLabel: UILabel!
@@ -18,7 +26,6 @@ class DetailsViewController: UIViewController {
     @IBOutlet weak var popularityLabel: UILabel!
     
     @IBOutlet weak var movieSubTitle: UILabel!
-    var movie: Movie?
     var defaults = UserDefaults.standard
     
     var isHeartFilled: Bool {
@@ -37,6 +44,9 @@ class DetailsViewController: UIViewController {
         heartImageView.image = UIImage(named: "heart")?.withRenderingMode(.alwaysOriginal)
         setFillHeartImage()
         
+        if let videoURL = videoURL {
+            playVideo(url: videoURL)
+        }
     }
     
     func bind() {
@@ -140,6 +150,22 @@ class DetailsViewController: UIViewController {
         } else {
             heartImageView.image = UIImage(named: "heart")?.withRenderingMode(.alwaysOriginal)
             isHeartFilled = false
+        }
+    }
+    
+    
+    func playVideo(url: URL) {
+        player = AVPlayer(url: url)
+        playerViewController = AVPlayerViewController()
+        playerViewController?.player = player
+        
+        if let playerViewController = playerViewController {
+            addChild(playerViewController)
+            playerViewController.view.frame = videoView.bounds
+            videoView.addSubview(playerViewController.view)
+            playerViewController.didMove(toParent: self)
+            
+            player?.play()
         }
     }
 }

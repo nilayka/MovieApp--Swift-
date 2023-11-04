@@ -5,18 +5,26 @@
 //  Created by Nilay KADİROĞULLARI on 14.08.2023.
 //
 import FirebaseAuth
+import AuthenticationServices
 import UIKit
+import GoogleSignIn
+
 
 class LoginViewController: UIViewController {
 
-    @IBOutlet weak var loginLabel: UILabel!
+    @IBOutlet weak var signInGoogle: UIButton!
+    @IBOutlet weak var iconImageView: UIImageView!
+    @IBOutlet weak var loginImageView: UIImageView!
     @IBOutlet weak var passwordField: UITextField!
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var UIbutton: UIButton!
-    
+    @IBOutlet weak var dontHaveSign: UILabel!
+    //    @IBOutlet weak var googleSignIn: GIDSignInButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        GIDSignIn.sharedInstance.presentingViewController = self
         
         let loginshown = UserDefaults.standard.bool(forKey: "OnboardingViewController")
         if !loginshown {
@@ -35,10 +43,8 @@ class LoginViewController: UIViewController {
         
         if userLoggedIn || userCreatedAccount {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let mainViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
+            let mainViewController = storyboard.instantiateViewController(withIdentifier: "mainVC")
             mainViewController.modalPresentationStyle = .fullScreen
-//            present(mainViewController, animated: true, completion: nil)
-//            self.dismiss(animated: true)
         }
     }
     
@@ -48,77 +54,46 @@ class LoginViewController: UIViewController {
     }
     @IBAction func continueButton(_ sender: UIButton) {
         
-        guard let email = emailField.text, !email.isEmpty,
-              let password = passwordField.text, !password.isEmpty
-        else {
-            return
-        }
         
-        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password, completion: { [weak self] result, error in
-            guard let strongSelf = self else {
+        guard let email = emailField.text, !email.isEmpty,
+                  let password = passwordField.text, !password.isEmpty
+            else {
+                showErrorAlert(message: "Email and password required.")
                 return
             }
-            
-            guard error == nil else {
-                
-                strongSelf.showCreateAccount(email: email, password: password)
-                return
-            }
-            
-            UserDefaults.standard.set(true, forKey: "UserLoggedIn")
-            strongSelf.saveCredentials(email: email, password: password)
-            print("You have signed in")
-            
-            strongSelf.emailField.isHidden = true
-            strongSelf.passwordField.isHidden = true
-            strongSelf.loginLabel.isHidden = true
-            strongSelf.UIbutton.isHidden = true
-            
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let newViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
-            newViewController.modalPresentationStyle = .fullScreen
-            strongSelf.present(newViewController, animated: true, completion: nil)
-//            strongSelf.dismiss(animated: true)
-        })
-    }
-    
-    func showCreateAccount(email: String, password: String) {
-        let alert = UIAlertController(title: "Create Account",
-                                      message: "Would you like to create an account",
-                                      preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Continue",
-                                      style: .default,
-                                      handler: {_ in
-            FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password, completion: {[weak self] result, error in
+
+            FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password, completion: { [weak self] result, error in
                 guard let strongSelf = self else {
                     return
                 }
-                
-                guard error == nil else {
-                    print("Account creation failed")
+
+                if let error = error {
+                    strongSelf.showErrorAlert(message: error.localizedDescription)
                     return
                 }
-                
-                UserDefaults.standard.set(true, forKey: "UserCreatedAccount")
+
+                UserDefaults.standard.set(true, forKey: "UserLoggedIn")
                 strongSelf.saveCredentials(email: email, password: password)
-                print("You have created")
-                
+                print("You are logged in")
+
                 strongSelf.emailField.isHidden = true
                 strongSelf.passwordField.isHidden = true
-                strongSelf.loginLabel.isHidden = true
+                strongSelf.loginImageView.isHidden = true
+                strongSelf.iconImageView.isHidden = true
                 strongSelf.UIbutton.isHidden = true
-                
+                strongSelf.dontHaveSign.isHidden = true
+
                 let storyboard = UIStoryboard(name: "Main", bundle: nil)
-                let newViewController = storyboard.instantiateViewController(withIdentifier: "SpaceViewController")
+                let newViewController = storyboard.instantiateViewController(withIdentifier: "mainVC")
                 newViewController.modalPresentationStyle = .fullScreen
-//                strongSelf.present(newViewController, animated: true, completion: nil)
-//                strongSelf.self.dismiss(animated: true)
+                strongSelf.present(newViewController, animated: true, completion: nil)
             })
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: {_ in
-        }))
-        
-        present(alert, animated: true)
+    }
+    
+    func showErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Hata", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Tamam", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
     
     func saveCredentials(email: String, password: String) {
@@ -130,5 +105,96 @@ class LoginViewController: UIViewController {
         SecItemDelete(credentials)
         SecItemAdd(credentials, nil)
     }
+    
+    
+    @IBAction func appleButton(_ sender: ASAuthorizationAppleIDButton) {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        
+        request.requestedScopes = [.fullName, .email]
+        
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
 }
 
+extension LoginViewController: ASAuthorizationControllerDelegate {
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        print("Failed!")
+    }
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        switch authorization.credential {
+        case let appleIDCredential as ASAuthorizationAppleIDCredential:
+            let userIdentifier = appleIDCredential.user
+            let fullName = appleIDCredential.fullName
+            let email = appleIDCredential.email
+            
+            Auth.auth().fetchSignInMethods(forEmail: email ?? "") { (methods, error) in
+                if let error = error {
+                    print("Error fetching sign-in methods:", error.localizedDescription)
+                    return
+                }
+                
+                if methods?.isEmpty ?? true {
+                    Auth.auth().createUser(withEmail: email ?? "", password: userIdentifier) { (authResult, error) in
+                        if let error = error {
+                            print("Error creating user:", error.localizedDescription)
+                            return
+                        }
+                        
+                        Auth.auth().signIn(withEmail: email ?? "", password: userIdentifier) { (authResult, error) in
+                            if let error = error {
+                                print("Error signing in:", error.localizedDescription)
+                                return
+                            }
+                            
+                            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                            let mainViewController = storyboard.instantiateViewController(withIdentifier: "mainVC")
+                            mainViewController.modalPresentationStyle = .fullScreen
+                        }
+                    }
+                } else {
+                    Auth.auth().signIn(withEmail: email ?? "", password: userIdentifier) { (authResult, error) in
+                        if let error = error {
+                            print("Error signing in:", error.localizedDescription)
+                            return
+                        }
+                        
+                        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                        let mainViewController = storyboard.instantiateViewController(withIdentifier: "mainVC")
+                        mainViewController.modalPresentationStyle = .fullScreen
+                    }
+                }
+            }
+        default:
+            break
+        }
+    }
+    
+}
+
+    func signInWithAppleIDCredential(_ appleIDCredential: ASAuthorizationAppleIDCredential) {
+        let identityTokenString = appleIDCredential.identityToken?.base64EncodedString() ?? ""
+        let credential = OAuthProvider.credential(withProviderID: "apple.com",
+                                                  idToken: identityTokenString,
+                                                  rawNonce: "")
+        
+        Auth.auth().signIn(with: credential) { (authResult, error) in
+            if let error = error {
+                print("Firebase Apple sign-in error:", error.localizedDescription)
+                return
+            }
+            
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let mainViewController = storyboard.instantiateViewController(withIdentifier: "mainVC")
+            mainViewController.modalPresentationStyle = .fullScreen
+        }
+    }
+
+extension LoginViewController: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return view.window!
+    }
+}
